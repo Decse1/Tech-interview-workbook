@@ -1126,12 +1126,347 @@ Ha például egy bejelentkezési funkciót tesztelsz, az adatvezérelt teszt egy
 
 #### ✅ Mik a kihívások és ajánlott eljárások a dinamikusan betöltött webes elemekkel?
 
+---
+
+## ⚠️ Kihívások
+
+| Kihívás                                  | Leírás                                                                                  |
+| ---------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Elem még nem érhető el**               | A teszt futásakor az elem még nem töltődött be a DOM-ba.                                |
+| **Elem nem látható vagy nem interaktív** | Az elem már betöltődött, de rejtve van (pl. animáció, modal, vagy scroll miatt).        |
+| **Stale Element**                        | Az elem már nem friss, mert a DOM frissült, és új példány jött létre.                   |
+| **Race condition**                       | A teszt gyorsabban fut, mint az oldal betöltése, így időzítési problémák lépnek fel.    |
+| **Lokalizáció vagy különböző verziók**   | Dinamikus tartalom nyelvtől, felhasználói szerepkörtől vagy verziótól függően eltérhet. |
+
+---
+
+## ✅ Ajánlott eljárások (Best Practices)
+
+### 1. **Használj explicit várakozást**
+
+Használj `WebDriverWait` és `expected_conditions` módszereket, hogy pontosan az adott állapotra várj:
+
+```python
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
+wait = WebDriverWait(driver, 10)
+element = wait.until(EC.visibility_of_element_located((By.ID, "result")))
+```
+
+### 2. **Ne használj `sleep()`-et**
+
+Kerüld a `time.sleep()` használatát — ez fix időt vár, függetlenül attól, hogy az oldal betöltődött-e vagy sem.
+
+### 3. **Dolgozz megbízható lokátorokkal**
+
+Keress stabil, nem változó attribútumokat (pl. `data-testid`, `aria-label`), és kerüld a dinamikus ID-ket vagy törékeny XPath-okat.
+
+### 4. **Használj újralekérdezést stale elem esetén**
+
+Ha `StaleElementReferenceException` lép fel, kérd le újra az elemet a DOM-ból.
+
+```python
+# példa újralekérdezésre:
+try:
+    element.click()
+except StaleElementReferenceException:
+    element = driver.find_element(By.ID, "some-id")
+    element.click()
+```
+
+### 5. **Scrollozz szükség esetén**
+
+Ha az elem nem látszik, előbb görgess oda:
+
+```python
+driver.execute_script("arguments[0].scrollIntoView(true);", element)
+```
+
+### 6. **Várj hálózati állapotokra, ha szükséges**
+
+Fejlettebb keretrendszerek (pl. Playwright, Cypress) támogatják a hálózati válaszokra való várakozást is – ez AJAX esetén hasznos lehet.
+
+---
+
+## 🧪 Extra tipp: Tesztelési stratégiák
+
+* Használj **retry logic**-ot a tesztkeretrendszeredben (pl. pytest `flaky`, `rerun` plugin).
+* Kombináld az **állapot-vizsgálatot** (pl. „Betöltés…” szöveg eltűnése) és az **elemállapot ellenőrzését**.
+
+---
+
 #### ✅ Mik a mobil tesztautomatizálás kihívásai?
+
+---
+
+## 📱 Mobil tesztautomatizálás kihívásai
+
+### 1. **Platformfragmentáció**
+
+* **Android vs iOS:** Két fő platform különböző működéssel, API-kkal és engedélykezeléssel.
+* **Különböző verziók:** Egy alkalmazás eltérően működhet Android 8 és Android 13 alatt.
+* **Készüléktípusok:** Sokféle kijelzőméret, felbontás, gyártó-specifikus viselkedés.
+
+### 2. **UI instabilitás**
+
+* Mobil UI-k gyakran animáltak, dinamikusan változnak.
+* Elempozíciók és -méretek különböznek a készülékek között.
+* Lokátorok gyakran törékenyek vagy nehezen hozzáférhetők.
+
+### 3. **Erőforrás-korlátok**
+
+* Lassabb futás, kevesebb memória, gyengébb teljesítmény.
+* Néhány teszt instabil lehet gyenge eszközökön.
+
+### 4. **Gestusok és interakciók kezelése**
+
+* Különböző gesztusok (swipe, pinch, tap & hold) nehezen szimulálhatók megbízhatóan.
+* Az eszközön megjelenő rendszerszintű üzenetek (pl. engedélykérések) zavarhatják a tesztet.
+
+### 5. **Emulátor vs. valódi eszköz**
+
+* Emulátorok gyorsak és könnyen kezelhetők, de nem fedik le a valós készülékeken tapasztalt hibákat.
+* Valódi eszközök kezelése nehézkesebb, lassabb, és hardver kell hozzá.
+
+### 6. **Hálózati és környezeti tényezők**
+
+* Hálózati változások, offline mód, GPS, Bluetooth stb. tesztelése bonyolult.
+* Külső hatások (pl. hívás beérkezése, képernyőzár) megszakíthatják a teszteket.
+
+### 7. **Automatizálási eszköz korlátai**
+
+* Appium például nem mindig támogat minden új natív funkciót.
+* iOS esetén sokkal zártabb a rendszer, korlátozottabbak a tesztelési lehetőségek (pl. értesítések kezelése, biztonsági korlátok).
+
+---
+
+## ✅ Jó gyakorlatok
+
+* **Használj megbízható lokátorokat** (pl. `accessibility ID`, `content-desc`).
+* **Válassz megfelelő keretrendszert**: pl. Appium, Espresso (Android), XCUITest (iOS).
+* **Kezelj dinamikus elemeket várakozásokkal**.
+* **Tesztelj valódi eszközökön is**, ne csak emulátorokon.
+* **Szigeteld a teszteket**: ne függjenek egymástól, így stabilabban futnak.
+* **Paraméterezd a teszteket** különböző készülékekre és verziókra.
+
+---
+
 
 ## Haladó témák
 <img src="https://www.softwaretestinghelp.com/wp-content/qa/uploads/2020/05/DevOps-in-a-Selenium-Testing.png" alt="image" width="320" height="220">
 
 #### ✅ Mi a különbség a CI és CD között?
+
+---
+
+## ✅ CI vs CD – Összehasonlítás
+
+| Fogalom                    | CI (Continuous Integration)             | CD (Continuous Delivery)                          | CD (Continuous Deployment)                         |
+| -------------------------- | --------------------------------------- | ------------------------------------------------- | -------------------------------------------------- |
+| **Magyarul**               | Folyamatos integráció                   | Folyamatos szállítás                              | Folyamatos élesítés                                |
+| **Fókusz**                 | A kód integrálása és tesztelése gyakran | A kiadás automatikus előkészítése                 | A kiadás automatikus végrehajtása                  |
+| **Fő cél**                 | Kódminőség és hibák korai felismerése   | Gyors és biztonságos release                      | Teljesen automatizált release folyamat             |
+| **Automatizált tesztelés** | Igen (unit, integration, stb.)          | Igen                                              | Igen                                               |
+| **Manuális lépés?**        | Nem                                     | Igen (pl. manuális jóváhagyás release előtt)      | Nem                                                |
+| **Deployment gyakorisága** | Nincs automatikus deploy                | Deployment szükség esetén, de automatizáltan kész | Deployment minden sikeres build után automatikusan |
+| **Tipikus eszközök**       | Git, Jenkins, GitHub Actions, Travis CI | Spinnaker, Octopus, GitLab CI/CD                  | ArgoCD, Flux, AWS CodeDeploy                       |
+
+---
+
+## 🔁 Egyszerű példa
+
+Tegyük fel, hogy van egy alkalmazásod:
+
+1. **CI**: Minden alkalommal, amikor valaki új kódot pushol, automatikus build és teszt indul, hogy ne törje el a projektet.
+2. **CD (Delivery)**: Ha a build sikeres, akkor a rendszer **elkészíti** a csomagot, és **előkészíti** a tesztkörnyezetre való telepítést – de a tényleges kiadáshoz manuális jóváhagyás szükséges.
+3. **CD (Deployment)**: Ha minden teszt zöld, a rendszer **automatikusan ki is telepíti** a változást akár a produkciós környezetbe is.
+
+---
+
+## 🧪 Miért fontos a tesztelőknek?
+
+* **CI** biztosítja, hogy a kód mindig tesztelt és integrált legyen.
+* **CD** biztosítja, hogy mindig van kiadható, működőképes állapotú build.
+* A tesztelőknek részt kell venniük az automatizált tesztek kialakításában, és biztosítaniuk kell, hogy a tesztelési folyamat megbízható és átfogó legyen.
+
+---
+
 #### ✅ Írj le egy Continuous Delivery folyamatot!
+
+---
+
+## 🚀 Continuous Delivery folyamat lépései
+
+### 1. **Kódolás és verziókezelés**
+
+* A fejlesztők új funkciókat vagy hibajavításokat írnak.
+* A kódot verziókezelő rendszerbe (pl. Git) pusholják.
+* A változtatások jellemzően feature branch-eken történnek, majd pull request formájában kerülnek be az alapágba.
+
+---
+
+### 2. **Automatikus build**
+
+* A CI/CD rendszer (pl. Jenkins, GitHub Actions, GitLab CI) automatikusan elindít egy build folyamatot, ha új commit érkezik.
+* A build során a projekt lefordul, elkészül a futtatható csomag (pl. `.jar`, `.zip`, Docker image).
+
+---
+
+### 3. **Automatikus tesztelés**
+
+* A build után azonnal elindulnak az automatikus tesztek:
+
+  * **Unit tesztek**
+  * **Integrációs tesztek**
+  * **Statisztikai kódellenőrzések** (linting, code coverage)
+* Csak akkor megy tovább a folyamat, ha **minden teszt sikeres**.
+
+---
+
+### 4. **Artifact tárolás**
+
+* A sikeres build eredménye (az ún. artifact) egy központi tárolóba kerül:
+
+  * Pl. Nexus, Artifactory, S3, Docker Registry
+* Így a későbbiekben ugyanaz a build használható élesítésre, amelyet teszteltünk.
+
+---
+
+### 5. **Telepítés tesztkörnyezetbe**
+
+* Az artifact automatikusan települ egy **tesztkörnyezetbe** (pl. staging, QA).
+* Itt további tesztek történnek:
+
+  * **UI tesztek**, **API tesztek**, **regressziós tesztek**, **performance tesztek**
+* Ezek a környezetek gyakran a produkcióhoz hasonlóan vannak konfigurálva.
+
+---
+
+### 6. **Manuális ellenőrzés / Jóváhagyás**
+
+* A QA vagy PO (Product Owner) manuálisan jóváhagyhatja a kiadást.
+* Ha minden megfelelő, az automatikusan előkészített csomag készen áll az **éles környezetbe való telepítésre**.
+
+---
+
+### 7. **Deployment lehetősége bármikor**
+
+* A legnagyobb előnye a CD-nek: **bármikor élesíthető** a friss változat, mert garantáltan működőképes és tesztelt build áll rendelkezésre.
+
+---
+
+## 🎯 Összefoglalva:
+
+A **Continuous Delivery** célja, hogy:
+
+* A változások **megbízhatóan**, **automatikusan** és **ismételhetően** kerüljenek be a rendszerbe.
+* A tesztelés és release folyamata **automatizált**, de az **élesítés még manuális döntés** lehet.
+
+---
+
+
 #### ✅ Hasonlítsd össze két népszerű CI rendszert, ezek közül az egyik legyen a Jenkins!
+---
+
+## 🔄 Jenkins vs. GitHub Actions – Összehasonlítás
+
+| Szempont                  | **Jenkins**                                     | **GitHub Actions**                               |
+| ------------------------- | ----------------------------------------------- | ------------------------------------------------ |
+| **Típus**                 | Nyílt forráskódú, önálló CI szerver             | GitHub-integrált, felhőalapú CI/CD eszköz        |
+| **Telepítés**             | Saját szerveren vagy felhőben futtatandó        | Nincs szükség telepítésre, GitHub-on fut         |
+| **Konfiguráció**          | Groovy vagy declaratív pipeline (`Jenkinsfile`) | YAML (`.github/workflows`) fájlban               |
+| **Integrációk**           | Nagyon sok plugin érhető el (1000+)             | GitHub-centrikus, de bővíthető Marketplace-ből   |
+| **Használhatóság**        | Komplexebb, tanulási görbéje meredek            | Egyszerűbb, gyorsan tanulható, GitHub-native     |
+| **Költség**               | Ingyenes, de üzemeltetni kell                   | Ingyenes publikus repókra, privát repókhoz kvóta |
+| **Skálázhatóság**         | Nagy kontroll, de skálázás saját feladat        | Automatikusan skálázódik GitHub-nál              |
+| **Biztonság**             | Teljes kontroll, de több felelősség             | GitHub biztonsági modellje és hozzáféréskezelése |
+| **Közösség és támogatás** | Nagy múltú, széles körben használt              | GitHub közösséggel jól integrált                 |
+| **Használati példa**      | Komplex, több projektes vállalati környezet     | GitHub-alapú fejlesztés és egyszerű pipeline-ok  |
+
+---
+
+## 📌 Mikor melyiket érdemes használni?
+
+### ✅ **Jenkins ajánlott, ha:**
+
+* Teljes kontrollt akarsz a CI/CD folyamat felett.
+* Nagy, komplex vagy több projekten átívelő build-rendszert kezelsz.
+* Testreszabott bővítményeket vagy integrációkat akarsz.
+* Vállalati szinten elvárt az on-premise üzemeltetés.
+
+### ✅ **GitHub Actions ajánlott, ha:**
+
+* Már GitHub-ot használsz forráskód-kezelésre.
+* Gyorsan szeretnél bevezetni CI/CD folyamatokat.
+* Kisebb vagy közepes projekteket kezelsz.
+* Egyszerű, könnyen karbantartható konfigurációra vágysz.
+
+---
+
 #### ✅ Mi a Docker és miért hasznos?
+
+---
+
+## 🐳 Mi a Docker?
+
+* Egy **konténerizációs eszköz**, amely lehetővé teszi szoftverek elkülönített, könnyű környezetekben való futtatását.
+* Egy **Docker konténer** tartalmazza az alkalmazást, annak futtatási környezetét, könyvtárait, konfigurációit és egyéb függőségeit.
+* A konténerek a **gazda operációs rendszerének** kernelét használják (nem teljes virtuális gépek).
+
+---
+
+## 🎯 Miért hasznos a Docker?
+
+### 1. **"It works on my machine" probléma megszüntetése**
+
+> A Docker garantálja, hogy az alkalmazás **ugyanúgy fut fejlesztői gépen, tesztkörnyezetben és produkcióban**.
+
+### 2. **Könnyű és gyors környezetindítás**
+
+> Egyetlen parancssal felhúzhatsz komplett környezeteket (pl. Node.js, PostgreSQL, Redis együttesen).
+
+### 3. **Verziókontrollált környezet**
+
+> A `Dockerfile` révén dokumentált és újraépíthető környezetek hozhatók létre – bármikor, ugyanúgy.
+
+### 4. **Izoláció**
+
+> Minden konténer **független a többitől**, így nincs portütközés, vagy könyvtárverzió-konfliktus.
+
+### 5. **CI/CD támogatás**
+
+> Könnyedén integrálható Jenkinsbe, GitHub Actions-be stb. – tesztek, build-ek konténerben futtathatók, mindig tiszta környezetben.
+
+### 6. **Skálázhatóság**
+
+> Később jól integrálható **Kubernetes** vagy más konténerorchesztrátorokkal.
+
+---
+
+## 🧱 Példa: Egyszerű Dockerfile
+
+```Dockerfile
+# Alapképfájl
+FROM node:18
+
+# Alkalmazás másolása a konténerbe
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+
+# Alkalmazás futtatása
+CMD ["node", "index.js"]
+```
+
+---
+
+## 🧪 Tesztelés szempontjából miért hasznos?
+
+* Tesztelők egy **konzisztens, előre definiált környezetben** tudnak tesztelni.
+* Könnyű szimulálni különböző környezeti beállításokat vagy adatbázisverziókat.
+* Automatizált tesztek konténerizált formában gyorsan, párhuzamosan futtathatók.
+
+---
