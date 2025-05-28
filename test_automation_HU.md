@@ -1123,3 +1123,15 @@ Ha például egy bejelentkezési funkciót tesztelsz, az adatvezérelt teszt egy
 | user2          | wrongpass | Sikertelen bejelentkezés |
 
 ---
+
+#### ✅ Mik a kihívások és ajánlott eljárások a dinamikusan betöltött webes elemekkel?
+
+#### ✅ Mik a mobil tesztautomatizálás kihívásai?
+
+## Haladó témák
+<img src="https://www.softwaretestinghelp.com/wp-content/qa/uploads/2020/05/DevOps-in-a-Selenium-Testing.png" alt="image" width="320" height="220">
+
+#### ✅ Mi a különbség a CI és CD között?
+#### ✅ Írj le egy Continuous Delivery folyamatot!
+#### ✅ Hasonlítsd össze két népszerű CI rendszert, ezek közül az egyik legyen a Jenkins!
+#### ✅ Mi a Docker és miért hasznos?
